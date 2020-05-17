@@ -4,7 +4,7 @@ https://realpython.com/python-speech-recognition/#supported-file-types
 https://issue.life/questions/26573556 
 """
 #ElimiC0
-version = 1.0
+version = 1.1
 #-----------
 import threading
 import time
@@ -15,7 +15,7 @@ import speech_recognition as sr
 import tkinter as tk
 #WHAT YOU CAN CHANGE:
 RECORD_SECONDS = 5 #time to record in sec. Each ... seconds your sound will updates. I prefer 5-6 sec
-listName = ['миша', 'михаил', 'лежнин', 'миш', 'мишка'] #your name / how the teacher calls u usually. 
+listName = ['миша', 'миш', 'саш', 'саша'] #your name / how the teacher calls u usually. 
 colorNotPressed = "green"
 colorPressed = "red"
 #THAT'S ALL
