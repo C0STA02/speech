@@ -6,12 +6,12 @@ https://issue.life/questions/26573556
 #ElimiC0
 version = 1.0
 #-----------
+import threading
 import time
 import os
 import wave
 import pyaudio
 import speech_recognition as sr
-import pygame
 import tkinter as tk
 #WHAT YOU CAN CHANGE:
 RECORD_SECONDS = 5 #time to record in sec. Each ... seconds your sound will updates. I prefer 5-6 sec
@@ -21,6 +21,7 @@ colorPressed = "red"
 #THAT'S ALL
 
 #FOR PYAUDIO
+ctd = 1
 CHUNK = 2048
 FORMAT = pyaudio.paInt16
 RATE = 44100
@@ -28,8 +29,8 @@ CHANNELS = 2
 WAVE_OUTPUT_FILENAME = "output.wav"
 r = sr.Recognizer()
 p = pyaudio.PyAudio()
+stream = p.open(format=FORMAT,channels=CHANNELS,rate=RATE,input=True,frames_per_buffer=CHUNK)
 #--
-
 def switchingLigths():
 	for i in range(25):
 		time.sleep(0.2)
@@ -38,60 +39,62 @@ def switchingLigths():
 		else:
 			root["bg"] = colorNotPressed
 		root.update()
-		
+#--	
 def changingLigths():
 	root["bg"] = colorPressed
 	root.update()
 	time.sleep(1)
 	root["bg"] = colorNotPressed
 	root.update()
-def playSound(): 
+#--
+def playAttention(): 
 	switchingLigths() 
-
-
+#--
 def checkSound():
-	stream = p.open(format=FORMAT,channels=CHANNELS,rate=RATE,input=True,frames_per_buffer=CHUNK)
 	frames = []
 	for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
 		data = stream.read(CHUNK)
 		frames.append(data)
-	stream.stop_stream()
-	stream.close()
-	p.terminate()
 	wf = wave.open(WAVE_OUTPUT_FILENAME, 'wb')
 	wf.setnchannels(CHANNELS)
 	wf.setsampwidth(p.get_sample_size(FORMAT))
 	wf.setframerate(RATE)
 	wf.writeframes(b''.join(frames))
 	wf.close()
-	print("CHECK ENDED")
 #--
 def findFromList(string):
 	for i in listName:
 		if string.find(i)!=-1:
 			return 1
 	return 0
-
-#---------------------------------------------
-print("SpeechChecker Version {} is working.".format(version))
-
+#--
+def exitFromProgram():
+	root.destroy()
+	print("SpeechChecker Version {} is closing.".format(version))
+	exit()
+#--mainFunction
+def mainF():
+	while True:
+		checkSound()
+		sound = sr.AudioFile(WAVE_OUTPUT_FILENAME)
+		print("START AUDIO")
+		try:
+			with sound as source:
+				audio = r.record(source)
+				stringAudio = r.recognize_google(audio, language = 'ru-RU')
+				if findFromList(stringAudio.lower())!=0:
+					print(stringAudio)
+					playAttention()
+		except Exception as e:
+			print("The error: " + str(e))
+#-----------------------------------
 #---tkinter block
+
 root = tk.Tk()
-e = tk.Entry(root, width=20)
+root.geometry("100x100")
+b = tk.Button(root,text = "exit",command = exitFromProgram, height = 2, width = 7)
+b.pack()
 root["bg"] = colorNotPressed
+threading.Thread(target = mainF).start()
 root.mainloop()
 #---tkinter block end
-
-while True:
-	checkSound()
-	sound = sr.AudioFile('output.wav')
-	print("START AUDIO")
-	try:
-		with sound as source:
-			audio = r.record(source)
-			stringAudio = r.recognize_google(audio, language = 'ru-RU')
-		if findFromList(stringAudio.lower())!=0:
-			print(stringAudio)
-			playSound()
-	except Exception as e:
-		print("The error: " + str(e))
